@@ -1,0 +1,48 @@
+{
+  "Name": "Old.Guitarist",
+  "Version": "0.0.1",
+  "Factory Info": {
+    "Vendor": "CoconutAudio",
+    "URL": "",
+    "E-Mail": "",
+    "Flags": {
+      "Unicode": true,
+      "Classes Discardable": false,
+      "Component Non Discardable": false,
+    },
+  },
+  "Classes": [
+    {
+      "CID": "ABCDEF019182FAEB434F4155474D4F44",
+      "Category": "Audio Module Class",
+      "Name": "Old.Guitarist",
+      "Vendor": "CoconutAudio",
+      "Version": "0.0.1",
+      "SDKVersion": "VST 3.8.0",
+      "Sub Categories": [
+        "Instrument",
+        "Synth",
+      ],
+      "Class Flags": 2,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+    {
+      "CID": "ABCDEF011234ABCD434F4155474D4F44",
+      "Category": "Component Controller Class",
+      "Name": "Old.Guitarist",
+      "Vendor": "CoconutAudio",
+      "Version": "0.0.1",
+      "SDKVersion": "VST 3.8.0",
+      "Sub Categories": [
+        "Instrument",
+        "Synth",
+      ],
+      "Class Flags": 2,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+  ],
+}

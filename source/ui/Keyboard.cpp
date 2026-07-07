@@ -11,26 +11,26 @@ int Keyboard::noteAtPosition(int x, int y) const
     if (whiteKeyWidth <= 0.0f)
         return -1;
 
-    const float fx = static_cast<float>(x);
-    const float fy = static_cast<float>(y);
+    const float mouseX = static_cast<float>(x);
+    const float mouseY = static_cast<float>(y);
     const float w  = static_cast<float>(getWidth());
     const float h  = static_cast<float>(getHeight());
 
-    if (fx < 0.0f || fx >= w)
+    if (mouseX < 0.0f || mouseX >= w)
         return -1;
 
-    const float bkw = whiteKeyWidth * 0.58f;
-    const float bkh = h * 0.62f;
+    const float blackKeyWidth = whiteKeyWidth * 0.58f;
+    const float blackKeyHeight = h * 0.62f;
 
     for (int note = endNote; note >= startNote; --note)
     {
         if (! isBlack(note))
             continue;
 
-        const float cx = blackKeyX(note);
-        const float bx = cx - bkw * 0.5f;
+        const float keyCenterX = blackKeyX(note);
+        const float blackKeyLeft = keyCenterX - blackKeyWidth * 0.5f;
 
-        if (fx >= bx && fx < bx + bkw && fy < bkh)
+        if (mouseX >= blackKeyLeft && mouseX < blackKeyLeft + blackKeyWidth && mouseY < blackKeyHeight)
             return note;
     }
 
@@ -39,8 +39,8 @@ int Keyboard::noteAtPosition(int x, int y) const
         if (isBlack(note))
             continue;
 
-        const float kx = static_cast<float>(whiteKeyIndex(note)) * whiteKeyWidth;
-        if (fx >= kx && fx < kx + whiteKeyWidth)
+        const float keyX = static_cast<float>(whiteKeyIndex(note)) * whiteKeyWidth;
+        if (mouseX >= keyX && mouseX < keyX + whiteKeyWidth)
             return note;
     }
 
@@ -96,8 +96,8 @@ void Keyboard::resized()
 void Keyboard::paint(Graphics& g)
 {
     const float h = static_cast<float>(getHeight());
-    const float bkw = whiteKeyWidth * 0.58f;
-    const float bkh = h * 0.62f;
+    const float blackKeyWidth = whiteKeyWidth * 0.58f;
+    const float blackKeyHeight = h * 0.62f;
     const float pressOffset = 2.0f;
 
     for (int note = startNote; note <= endNote; ++note)
@@ -123,16 +123,16 @@ void Keyboard::paint(Graphics& g)
         if (! isBlack(note))
             continue;
 
-        const float cx = blackKeyX(note);
-        const float bx = cx - bkw * 0.5f;
+        const float keyCenterX = blackKeyX(note);
+        const float blackKeyLeft = keyCenterX - blackKeyWidth * 0.5f;
         const bool pressed = (lastNote == note);
         const float top = pressed ? pressOffset : 0.0f;
-        const float keyH = bkh - top;
+        const float keyH = blackKeyHeight - top;
 
         g.setColour(pressed ? Colour(50, 50, 50) : Colours::black);
-        g.fillRect(bx, top, bkw, keyH);
+        g.fillRect(blackKeyLeft, top, blackKeyWidth, keyH);
 
         g.setColour(Colour(80, 80, 80));
-        g.drawLine(bx, top + keyH - 1.0f, bx + bkw, top + keyH - 1.0f, 1.0f);
+        g.drawLine(blackKeyLeft, top + keyH - 1.0f, blackKeyLeft + blackKeyWidth, top + keyH - 1.0f, 1.0f);
     }
 }

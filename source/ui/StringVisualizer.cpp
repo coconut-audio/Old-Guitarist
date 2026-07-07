@@ -33,16 +33,16 @@ void StringVisualizer::paint(Graphics& g)
     g.setColour(Colours::black);
     g.fillRect(boardLeft, boardTop, boardWidth, boardHeight);
 
-    for (int f = 0; f <= numFrets; ++f)
+    for (int fret = 0; fret <= numFrets; ++fret)
     {
-        const float x = boardLeft + fretX(f, boardWidth);
+        const float x = boardLeft + fretX(fret, boardWidth);
         g.setColour(Colour(180, 170, 150));
-        g.drawLine(x, boardTop, x, boardBottom, f == 0 ? 3.0f : 1.5f);
+        g.drawLine(x, boardTop, x, boardBottom, fret == 0 ? 3.0f : 1.5f);
     }
 
-    for (int i = 0; i < Processor::numStrings; ++i)
+    for (int stringIndex = 0; stringIndex < Processor::numStrings; ++stringIndex)
     {
-        auto* voice = processor.voices[i];
+        auto* voice = processor.voices[stringIndex];
         if (voice == nullptr || voice->getNumNodes() == 0)
             continue;
 
@@ -50,11 +50,11 @@ void StringVisualizer::paint(Graphics& g)
         if (midiNote < 0)
             continue;
 
-        const int s = processor.getStringForNote(midiNote);
-        if (s < 0 || s != i)
+        const int fretString = processor.getStringForNote(midiNote);
+        if (fretString < 0 || fretString != stringIndex)
             continue;
 
-        const int fret = midiNote - Processor::openStringNotes[s];
+        const int fret = midiNote - Processor::openStringNotes[fretString];
         const float x0 = boardLeft + fretX(fret, boardWidth);
         const float x1 = boardLeft + fretX(fret + 1, boardWidth);
 
@@ -62,25 +62,25 @@ void StringVisualizer::paint(Graphics& g)
         g.fillRect(x0, boardTop, x1 - x0, boardHeight);
     }
 
-    for (int s = 0; s < 6; ++s)
+    for (int stringIndex = 0; stringIndex < 6; ++stringIndex)
     {
-        const float y = boardTop + (static_cast<float>(s) + 0.5f) * (boardHeight / 6.0f);
-        const float thickness = 1.0f + static_cast<float>(5 - s) * 0.35f;
+        const float y = boardTop + (static_cast<float>(stringIndex) + 0.5f) * (boardHeight / 6.0f);
+        const float thickness = 1.0f + static_cast<float>(5 - stringIndex) * 0.35f;
 
-        const int numNodes = processor.voices[s]->getNumNodes();
-        const float* state = processor.voices[s]->getStringState();
+        const int numNodes = processor.voices[stringIndex]->getNumNodes();
+        const float* state = processor.voices[stringIndex]->getStringState();
 
         if (numNodes > 1)
         {
-            const float dy = 300.0f;
-            for (int n = 0; n < numNodes - 1; ++n)
+            const float displacementScale = 300.0f;
+            for (int nodeIndex = 0; nodeIndex < numNodes - 1; ++nodeIndex)
             {
-                const float t0 = static_cast<float>(n)     / static_cast<float>(numNodes - 1);
-                const float t1 = static_cast<float>(n + 1) / static_cast<float>(numNodes - 1);
+                const float t0 = static_cast<float>(nodeIndex)     / static_cast<float>(numNodes - 1);
+                const float t1 = static_cast<float>(nodeIndex + 1) / static_cast<float>(numNodes - 1);
                 const float x0 = boardLeft + t0 * boardWidth;
                 const float x1 = boardLeft + t1 * boardWidth;
-                const float y0 = y - state[n]     * dy;
-                const float y1 = y - state[n + 1] * dy;
+                const float y0 = y - state[nodeIndex]     * displacementScale;
+                const float y1 = y - state[nodeIndex + 1] * displacementScale;
 
                 g.setColour(Colours::white);
                 g.drawLine(x0, y0, x1, y1, thickness);
@@ -93,11 +93,11 @@ void StringVisualizer::paint(Graphics& g)
         }
     }
 
-    for (int f = 1; f <= numFrets; ++f)
+    for (int fret = 1; fret <= numFrets; ++fret)
     {
-        const float x = boardLeft + fretX(f, boardWidth);
+        const float x = boardLeft + fretX(fret, boardWidth);
         g.setColour(Colour(120, 120, 120));
         g.setFont(10.0f);
-        g.drawText(String(f), x - 5.0f, boardBottom + 2.0f, 12.0f, 12.0f, Justification::centred);
+        g.drawText(String(fret), x - 5.0f, boardBottom + 2.0f, 12.0f, 12.0f, Justification::centred);
     }
 }

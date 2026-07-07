@@ -1,0 +1,3 @@
+/home/vivekv/Desktop/Old-Guitarist/build/vst3_helpers/Old.Guitarist/CMakeFiles/vst3_helper.dir
+/home/vivekv/Desktop/Old-Guitarist/build/vst3_helpers/Old.Guitarist/CMakeFiles/edit_cache.dir
+/home/vivekv/Desktop/Old-Guitarist/build/vst3_helpers/Old.Guitarist/CMakeFiles/rebuild_cache.dir

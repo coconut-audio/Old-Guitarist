@@ -12,6 +12,7 @@ message(STATUS "Plugin Code: ${CURRENT_PLUGIN_CODE}")
 
 # set JUCE path
 add_subdirectory(modules/JUCE)
+add_subdirectory(modules/Eigen)
 
 # set plugin formats
 set(FORMATS VST3 Standalone)
@@ -64,6 +65,7 @@ target_link_libraries(${PROJECT_NAME}
         Data
         juce::juce_audio_utils
         juce::juce_dsp
+        Eigen3::Eigen
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

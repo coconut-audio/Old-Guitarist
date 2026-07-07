@@ -76,13 +76,13 @@ int Processor::getStringForNote(int midiNote) const
     int bestString = -1;
     int bestFret = maxFret + 1;
 
-    for (int s = 5; s >= 0; --s)
+    for (int string = 5; string >= 0; --string)
     {
-        const int fret = midiNote - openStringNotes[s];
+        const int fret = midiNote - openStringNotes[string];
         if (fret >= 0 && fret <= maxFret && fret < bestFret)
         {
             bestFret = fret;
-            bestString = s;
+            bestString = string;
         }
     }
 

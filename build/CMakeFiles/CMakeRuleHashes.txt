@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+0a7a5470916644130ce58511bb816bb0 CMakeFiles/Old.Guitarist_vst3_helper
+9df3c6598629a1242ac798e05b910088 Old.Guitarist_artefacts/JuceLibraryCode/JuceHeader.h
+e594043c2f1c26f48ba65d85962c154d juce_binarydata_Data/JuceLibraryCode/BinaryData1.cpp
