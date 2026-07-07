@@ -106,7 +106,8 @@ $$\begin{bmatrix} d & o & & \\ o & d & \ddots & \\ & \ddots & \ddots & o \\ & & 
 | 2 | B3 | 0.65 | 55 | $1.52 \times 10^{-3}$ | 189.8 |
 | 1 | E4 | 0.55 | 50 | $1.10 \times 10^{-3}$ | 213.2 |
 
-$$ρ = 1150 \; kg/m^3 \text{ (nylon)}, \quad l = c / (2f) \text{ where } f \text{ is the MIDI note frequency.}$$
+- $ρ = 1150 \; kg/m^3$ (nylon)
+- $l = c / (2f)$
 
 ## Build from Source
 
