@@ -71,17 +71,29 @@ $ (y * h)(t) = \int_{-\infty}^{\infty} y(\tau) \, h(t - \tau) \, d\tau $
 
 ## Vectorization
 
-$$ \mathbf{s} = \left[ \mathbf{y}_n \;\; \mathbf{y}_{n-1} \right] \in \mathbb{R}^{2N} $$
+The solver maintains a two-buffer state containing current and previous time step displacements:
 
-$$ \mathbf{u} = [y_2^n, \, y_3^n, \, \ldots, \, y_{N-3}^n]^\top \in \mathbb{R}^S, \qquad S = N - 4 $$
+$ \mathbf{s} = \left[ \mathbf{y}_n \;\; \mathbf{y}_{n-1} \right] \in \mathbb{R}^{2N} $
 
-$$ \nabla^2 \mathbf{u} = \mathbf{y}_{n,[1:S]} - 2\mathbf{u} + \mathbf{y}_{n,[3:S+2]} $$
+Only the interior nodes are updated by the tridiagonal solve:
 
-$$ \nabla^4 \mathbf{u} = \mathbf{y}_{n,[0:S]} - 4\mathbf{y}_{n,[1:S+1]} + 6\mathbf{u} - 4\mathbf{y}_{n,[3:S+3]} + \mathbf{y}_{n,[4:S+4]} $$
+$ \mathbf{u} = [y_2^n, \, y_3^n, \, \ldots, \, y_{N-3}^n]^T \in \mathbb{R}^S, \qquad S = N - 4 $
 
-$$ \mathbf{b} = 2\mathbf{u} - \mathbf{u}_{n-1} + (1-\theta) \, r \, \nabla^2 \mathbf{u} + \frac{\gamma \Delta t}{2} \, \mathbf{u}_{n-1} - \frac{EI}{\mu} \frac{\Delta t^2}{\Delta x^4} \, \nabla^4 \mathbf{u} $$
+> The second derivative stencil is computed as vectorized array operations on slices of the state:
 
-$$ \begin{bmatrix} d & o & & \\ o & d & \ddots & \\ & \ddots & \ddots & o \\ & & o & d \end{bmatrix} \mathbf{u}^{n+1} = \mathbf{b} $$
+$ \nabla^2 \mathbf{u} = \mathbf{y}_{n,1:S} - 2\mathbf{u} + \mathbf{y}_{n,3:S+2} $
+
+> The bending stiffness term uses a five-point stencil, also computed as vectorized operations on overlapping slices:
+
+$ \nabla^4 \mathbf{u} = \mathbf{y}_{n,0:S} - 4\mathbf{y}_{n,1:S+1} + 6\mathbf{u} - 4\mathbf{y}_{n,3:S+3} + \mathbf{y}_{n,4:S+4} $
+
+> The full right-hand side vector is assembled from vectorized operations:
+
+$ \mathbf{b} = 2\mathbf{u} - \mathbf{u}_{n-1} + (1-\theta) \, r \, \nabla^2 \mathbf{u} + \frac{\gamma \Delta t}{2} \, \mathbf{u}_{n-1} - \frac{EI}{\mu} \frac{\Delta t^2}{\Delta x^4} \, \nabla^4 \mathbf{u} $
+
+> The assembled right-hand side feeds into the Thomas algorithm, which remains sequential:
+
+$ \begin{bmatrix} d & o & & \\ o & d & \ddots & \\ & \ddots & \ddots & o \\ & & o & d \end{bmatrix} \mathbf{u}^{n+1} = \mathbf{b} $
 
 ## Per-string parameters
 
