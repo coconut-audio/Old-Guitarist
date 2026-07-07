@@ -9,7 +9,7 @@ Old guitarist is a physically modeled virtual guitar plugin.
 | Symbol | Description | Unit |
 |--------|-------------|------|
 | $\gamma$ | Damping factor | - |
-| $\mu$ | Linear density | kg/m |
+| $\mu$ | Linear density $\rho \pi r^2$ | kg/m |
 | $E$ | Young's modulus | Pa |
 | $I$ | Second moment of area $(\pi r^4 / 4)$ | m⁴ |
 | $l$ | Length of the string | m |
@@ -18,44 +18,86 @@ Old guitarist is a physically modeled virtual guitar plugin.
 | $t$ | Time | s |
 | $c$ | Wave speed $\sqrt{T / \mu}$ | m/s |
 | $\theta$ | Crank–Nicolson parameter (0.5) | - |
+| $r$ | String radius | m |
+| $\rho$ | Material density (1150 kg/m³) | kg/m³ |
+| $f_s$ | Sample rate (48000 Hz) | Hz |
+| $N$ | Number of nodes (101) | - |
+| $x_p$ | Pluck position $(0.125 \, l)$ | m |
+| $y_{\max}$ | Pluck amplitude (0.02 m) | m |
 
 ### Wave equation
 
-$$ \frac{\partial^2 y}{\partial x^2} - \frac{\mu}{T} \frac{\partial^2 y}{\partial t^2} - \gamma \frac{\partial y}{\partial t} - EI \frac{\partial^4 y}{\partial x^4} = 0 $$
+$$ \frac{\partial^2 y}{\partial t^2} = c^2 \frac{\partial^2 y}{\partial x^2} - \gamma \frac{\partial y}{\partial t} - \frac{EI}{\mu} \frac{\partial^4 y}{\partial x^4} $$
+
+The first term on the right is the restoring force from tension (gives the pitch), the second is viscous damping (gives the decay), and the third is bending stiffness from the string's finite thickness (gives the inharmonicity).
 
 ### Initial conditions
 
-$$ y(x, 0) = \begin{cases} \dfrac{y_{\max}}{x_p} \, x & 0 \leq x < x_p \\[6pt] \dfrac{y_{\max}}{l - x_p} \, (l - x) & x_p \leq x \leq l \end{cases} $$
+The string is plucked at position $x_p$ to amplitude $y_{\max}$, with zero initial velocity:
+
+$$ y(x, 0) = \frac{y_{\max}}{x_p} \, x \quad \text{for } 0 \leq x < x_p $$
+
+$$ y(x, 0) = \frac{y_{\max}}{l - x_p} \, (l - x) \quad \text{for } x_p \leq x \leq l $$
 
 $$ y(0, t) = y(l, t) = 0 $$
 
+$$ \frac{\partial y}{\partial t} (x, 0) = 0 $$
+
 ### Finite difference method
 
-The wave equation is discretized as:
+The string is divided into $N$ equally spaced nodes:
 
-$$ \frac{y_{x+1}^{t} - 2y_{x}^{t} + y_{x-1}^{t}}{\Delta x^2} - \frac{\mu}{T}\frac{y_{x}^{t+1} - 2y_{x}^{t} + y_{x}^{t-1}}{\Delta t^2} - \gamma \frac{y_{x}^{t+1} - y_{x}^{t-1}}{2 \Delta t} - EI \frac{y_{x-2}^{t} -4y_{x-1}^{t} + 6y_{x}^{t} - 4y_{x+1}^{t} + y_{x+2}^{t}}{\Delta x^4} = 0 $$
+$$ \Delta x = \frac{l}{N - 1}, \qquad \Delta t = \frac{1}{f_s} $$
+
+The second derivative (tension term) uses a three-point stencil:
+
+$$ \frac{\partial^2 y}{\partial x^2} \bigg|_{i} \approx \frac{y_{i-1} - 2y_i + y_{i+1}}{\Delta x^2} $$
+
+The fourth derivative (bending stiffness) uses a five-point stencil:
+
+$$ \frac{\partial^4 y}{\partial x^4} \bigg|_{i} \approx \frac{y_{i-2} - 4y_{i-1} + 6y_i - 4y_{i+1} + y_{i+2}}{\Delta x^4} $$
 
 > The stability condition is the Courant–Friedrichs–Lewy criterion:
 
-$$ C = \sqrt{\frac{\mu}{T}} \frac{\Delta x}{\Delta t} \leq C_{\text{max}} $$
-
-$$ \frac{1}{\Delta x} \leq \frac{1}{\Delta t} \times \sqrt{\frac{\mu}{T}} $$
+$$ \frac{\Delta x}{\Delta t \cdot c} \leq 1 $$
 
 ### Crank–Nicolson
 
-The spatial operator is averaged between time steps $t$ and $t+1$ with parameter $\theta = 0.5$, yielding a tridiagonal system:
+The spatial operator is averaged between time steps $n$ and $n+1$ with $\theta = 0.5$:
+
+$$ \frac{y_i^{n+1} - 2y_i^n + y_i^{n-1}}{\Delta t^2} = c^2 \left[ \theta \frac{\nabla^2 y_i^{n+1}}{\Delta x^2} + (1 - \theta) \frac{\nabla^2 y_i^n}{\Delta x^2} \right] - \frac{\gamma}{2\Delta t} \left( y_i^{n+1} - y_i^{n-1} \right) - \frac{EI}{\mu} \frac{\nabla^4 y_i^n}{\Delta x^4} $$
+
+Collecting the unknown $y_i^{n+1}$ terms on the left yields a tridiagonal system:
 
 $$ -\theta r \, y_{i-1}^{n+1} + (1 + 2\theta r) \, y_i^{n+1} - \theta r \, y_{i+1}^{n+1} = \text{RHS}_i $$
 
 $$ r = \frac{c^2 \Delta t^2}{\Delta x^2} $$
 
-Solved via Thomas algorithm ($O(N)$).
+$$ \text{RHS}_i = 2y_i^n - y_i^{n-1} + (1 - \theta) \, r \, \nabla^2 y_i^n + \frac{\gamma \Delta t}{2} \, y_i^{n-1} - \frac{EI}{\mu} \frac{\Delta t^2}{\Delta x^4} \, \nabla^4 y_i^n $$
+
+Solved via Thomas algorithm $\mathcal{O}(N)$.
 
 ### Sound generation
 
 > $y^{t}$ is sampled for $x \in (0, l)$. The tone varies with $x$. An impulse response of a guitar body is convolved with $y$ to introduce body resonance.
 
 $$ (y * h)(t) = \int_{-\infty}^{\infty} y(\tau) \, h(t - \tau) \, d\tau $$
+
+## Vectorization
+
+Eigen `Map<VectorXf>` provides zero-copy views over the state buffer. Stencil operations (Laplacian, fourth derivative, RHS assembly) are vectorized as Eigen expressions. The Thomas algorithm remains sequential.
+
+$$ \mathbf{s} = \left[ \mathbf{y}_n \;\; \mathbf{y}_{n-1} \right] \in \mathbb{R}^{2N} $$
+
+$$ \mathbf{u} = [y_2^n, \, y_3^n, \, \ldots, \, y_{N-3}^n]^\top \in \mathbb{R}^S, \qquad S = N - 4 $$
+
+$$ \nabla^2 \mathbf{u} = \mathbf{y}_{n,[1:S]} - 2\mathbf{u} + \mathbf{y}_{n,[3:S+2]} $$
+
+$$ \nabla^4 \mathbf{u} = \mathbf{y}_{n,[0:S]} - 4\mathbf{y}_{n,[1:S+1]} + 6\mathbf{u} - 4\mathbf{y}_{n,[3:S+3]} + \mathbf{y}_{n,[4:S+4]} $$
+
+$$ \mathbf{b} = 2\mathbf{u} - \mathbf{u}_{n-1} + (1-\theta) \, r \, \nabla^2 \mathbf{u} + \frac{\gamma \Delta t}{2} \, \mathbf{u}_{n-1} - \frac{EI}{\mu} \frac{\Delta t^2}{\Delta x^4} \, \nabla^4 \mathbf{u} $$
+
+$$ \begin{bmatrix} d & o & & \\ o & d & \ddots & \\ & \ddots & \ddots & o \\ & & o & d \end{bmatrix} \mathbf{u}^{n+1} = \mathbf{b} $$
 
 ## Per-string parameters
 
